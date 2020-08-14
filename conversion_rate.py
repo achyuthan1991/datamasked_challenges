@@ -39,20 +39,22 @@ data = h2o.H2OFrame(df)
 # Setting the target variable as a factor is important.
 # this tells the model that target is not numeric, and enables classification related performance metrics
 data[target_col] = data[target_col].asfactor()
+data['new_user'] = data['new_user'].asfactor()
 train, test = data.split_frame(ratios=[0.8])
 model = H2ORandomForestEstimator(ntrees=50, max_depth=20, nfolds=10)
 model.train(x=features, y=target_col, training_frame=train)
 performance = model.model_performance(test_data=test)
 # Evaluating the standard F1 metric on the test set
-print(performance.F1(train=True, valid=True, xval=False))
+print("F1: ", performance.F1()) # prints best threshold and value of f1 for that threshold
 # Evaluating the confusion matrix since data is highly imbalanced. This gives a better sense of the model performance
-print(performance.confusions_matrix())
+print(performance.confusion_matrix())
 # since data is imbalanced, checking the area under the precision recall curve. See link for more metric explanations
 # https://docs.h2o.ai/h2o/latest-stable/h2o-docs/performance-and-prediction.html
 # Also printing the MCC (Mathew's correlation coefficient)
-print(performance.aucpr())
-print(performance.mcc())
+print("AUC for Precision Recall Curve:", performance.aucpr())
+print("Mathew's Correlation Coefficient:", performance.mcc())
 # printing all the metrics
+print("Printing all metrics")
 print(performance)
 # Checking mathew's correlation coefficient (MCC is good for evaluating classification performance). See link for why:
 # https://www.kdnuggets.com/2016/12/best-metric-measure-accuracy-classification-models.html/2
@@ -60,3 +62,4 @@ print(performance)
 # and an MCC of 0.74 on the test set
 # This solves the problem. From the confusion matrix, it can be seen that the model precision and recall are
 # also fairly ok. More fine tuning can improve the results
+h2o.cluster().shutdown()
